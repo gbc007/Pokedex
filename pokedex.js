@@ -220,7 +220,6 @@ function capitalizeFirstLetter(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
-// Close the modal when the user clicks anywhere outside of the modal content
 window.onclick = function(event) {
     const modal = document.getElementById('pokemon-modal');
     if (event.target === modal) {
