@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokédex</title>
+    <link rel="stylesheet" href="pokedex.css">
+</head>
+<body>
+    <div class="pokedex">
+        <div id="overlay" style="display: none;">
+            <div class="loader"></div>
+        </div>
+        <div class="search-container">
+            <h1>Pokédex</h1>
+            <div class="search">
+                <input type="text" id="pokemon-name" placeholder="Pesquisar Pokémon...">
+                <button onclick="searchPokemon()">Pesquisar</button>
+            </div>
+        </div>
+        <div id="pokemon-list" class="pokemon-list"></div>
+        <button id="load-more" onclick="loadMorePokemons()">Ver mais</button>
+    </div>
+    <!-- Popup Modal -->
+    <div id="pokemon-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <script src="pokedex.js"></script>
+</body>
+</html>
