@@ -1,61 +1,72 @@
 let offset = 0;
 const limit = 24;
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener('DOMContentLoaded', () => {
+    // Obter pokemons.
     loadMorePokemons();
+
+    const searchInput = document.getElementById('pokemon-name');
+    // Adiciona um evento para buscar ao pressionar Enter
+    searchInput.addEventListener('keypress', function (event) {
+        if (event.key === 'Enter') {
+            searchPokemon();
+        }
+    });
 });
 
+// Função para obter os pokemons
 async function loadMorePokemons() {
-    showLoading(true); // Exibe o loading antes de carregar mais Pokémon
+    showLoading(true);
 
     const url = `https://pokeapi.co/api/v2/pokemon?offset=${offset}&limit=${limit}`;
     try {
         const response = await fetch(url);
         if (!response.ok) {
-            throw new Error('Erro ao carregar Pokémon');
+            throw new Error('Erro ao carregar Pokemon');
         }
         const data = await response.json();
         
-        // Organiza os resultados da API por ID de Pokémon
         const sortedPokemon = data.results.sort((a, b) => {
             const idA = parseInt(a.url.split('/').slice(-2)[0]);
             const idB = parseInt(b.url.split('/').slice(-2)[0]);
             return idA - idB;
         });
         
-        // Exibe os cartões de Pokémon na lista
+        // Exibe os cards dos pokemons na lista
         displayPokemonList(sortedPokemon);
 
         // Atualiza o offset para a próxima requisição
         offset += limit;
 
-        // Verifica se há mais Pokémon para carregar
+        // Verifica se há mais pokemons para carregar
         if (!data.next) {
             const loadMoreButton = document.getElementById('load-more');
-            loadMoreButton.style.display = 'none'; // Oculta o botão "Ver Mais" se não houver mais Pokémon
+            loadMoreButton.style.display = 'none'; // Oculta o botão "Ver Mais" se não houver mais pokemon
         }
 
         setTimeout(() => {
-            showLoading(false); // Remove o loading após exibir os Pokémon
-        }, 1000); // Atraso de 2 segundos para remover o loading
+            showLoading(false);
+        }, 1000); 
     } catch (error) {
         console.error(error);
-        showLoading(false); // Remove o loading em caso de erro
+        showLoading(false);
     }
 }
 
+// Função de busca dos pokemons por número da pokedex ou nome
 async function searchPokemon() {
     const pokemonNameOrId = document.getElementById('pokemon-name').value.toLowerCase();
 
     try {
-        showLoading(true); // Exibe o loading antes de fazer a busca
-
         const loadMoreButton = document.getElementById('load-more');
         const pokemonListDiv = document.getElementById('pokemon-list');
+        const searchResultDiv = document.getElementById('search-result');
 
         // Se o campo de texto estiver vazio, faz um novo GET da API com offset = 0 e limit = offset
         if (pokemonNameOrId === '') {
+            showLoading(true);
             pokemonListDiv.innerHTML = ''; // Limpa o conteúdo da div .pokemon-list
+            searchResultDiv.innerHTML = ''; // Limpa busca anterior
             
             let url;
             if (offset === 0)
@@ -65,7 +76,7 @@ async function searchPokemon() {
             const response = await fetch(url);
 
             if (!response.ok) {
-                throw new Error('Erro ao carregar Pokémon');
+                throw new Error('Erro ao carregar Pokemon');
             }
 
             const data = await response.json();
@@ -73,33 +84,51 @@ async function searchPokemon() {
                 return a.id - b.id;
             });
 
-            displayPokemonList(sortedPokemon); // Exibe os Pokémon carregados
+            displayPokemonList(sortedPokemon); // Exibe os pokemon carregados
             loadMoreButton.style.display = 'block'; // Mostra o botão "Ver Mais"
-        } else {
-            const url = `https://pokeapi.co/api/v2/pokemon/${pokemonNameOrId}`;
+        } else if (pokemonNameOrId.length >= 3) {
+            showLoading(true); // Exibe o loading antes de fazer a busca
+            pokemonListDiv.innerHTML = ''; // Limpa o conteúdo da div .pokemon-list
+            searchResultDiv.innerHTML = ''; // Limpa qualquer mensagem de busca anterior
+
+            const url = `https://pokeapi.co/api/v2/pokemon?limit=1000`;
             const response = await fetch(url);
 
             if (!response.ok) {
-                throw new Error('Pokémon não encontrado');
+                throw new Error('Erro ao carregar pokemon');
             }
 
             const data = await response.json();
-            console.log('Dados do Pokémon:', data); // Verificar os dados do Pokémon no console
-            hideOtherPokemonCards(data.name); // Oculta os outros cartões de Pokémon
+            const filteredPokemon = data.results.filter(pokemon => pokemon.name.includes(pokemonNameOrId));
+            const sortedPokemon = filteredPokemon.sort((a, b) => {
+                return a.name.localeCompare(b.name);
+            });
+
+            if (sortedPokemon.length === 0) {
+                searchResultDiv.innerHTML = '<p>Nenhum Pokemon encontrado!</p>';
+            } else {
+                displayPokemonList(sortedPokemon); // Exibe os Pokemon filtrados
+            }
+
             loadMoreButton.style.display = 'none'; // Oculta o botão "Ver Mais"
+        } else {
+            searchResultDiv.innerHTML = '<p>Digite pelo menos 3 letras para buscar um Pokemon!</p>';
         }
     } catch (error) {
-        console.error('Erro ao buscar o Pokémon:', error); // Exibir erro no console
-        document.getElementById('search-result').innerHTML = '<p>Pokémon não encontrado!</p>';
+        console.error('Erro ao buscar o Pokemon:', error);
+        document.getElementById('search-result').innerHTML = '<p>Pokemon não encontrado!</p>';
     } finally {
-        showLoading(false); // Remove o loading após a busca
+        // Remove o loading após a busca e exibição dos Pokemon
+        setTimeout(() => {
+            showLoading(false);
+        }, 2000);
     }
 }
 
 function hideOtherPokemonCards(pokemonName) {
     const pokemonCards = document.querySelectorAll('.pokemon-card');
     pokemonCards.forEach(card => {
-        const cardNameElement = card.querySelector('h3'); // Ajuste do seletor para buscar o elemento h3
+        const cardNameElement = card.querySelector('h3');
         if (cardNameElement) {
             const cardName = cardNameElement.textContent.toLowerCase();
             if (cardName !== pokemonName) {
@@ -120,26 +149,23 @@ async function displayPokemonList(pokemons) {
     const pokemonListDiv = document.getElementById('pokemon-list');
     
     try {
-        // Mapeia as respostas das requisições GET para os detalhes dos Pokémon
+        // Mapeia as respostas das requisições GET para os detalhes dos Pokemon
         const pokemonResponses = await Promise.all(pokemons.map(pokemonData => {
             const url = pokemonData.url;
             return fetch(url);
         }));
 
-        // Extrai os dados JSON de todas as respostas
         const pokemonDetails = await Promise.all(pokemonResponses.map(response => {
             if (!response.ok) {
-                throw new Error('Erro ao carregar dados do Pokémon');
+                throw new Error('Erro ao carregar dados do Pokemon');
             }
             return response.json();
         }));
 
-        // Organiza os detalhes dos Pokémon por ID
         const sortedPokemon = pokemonDetails.sort((a, b) => {
             return a.id - b.id;
         });
 
-        // Cria os cartões de Pokémon e os adiciona ao elemento pai
         sortedPokemon.forEach(pokemon => {
             const pokemonCard = createPokemonCard(pokemon);
             pokemonListDiv.appendChild(pokemonCard);
@@ -174,7 +200,7 @@ function displaySearchResult(data) {
 function createPokemonCard(data, id) {
     const pokemonCard = document.createElement('div');
     pokemonCard.className = 'pokemon-card';
-    pokemonCard.setAttribute('data-id', id); // Adiciona o ID do Pokémon como atributo data-id
+    pokemonCard.setAttribute('data-id', id);
 
     pokemonCard.innerHTML = `
         <h3>${capitalizeFirstLetter(data.name)}</h3>
@@ -186,30 +212,155 @@ function createPokemonCard(data, id) {
     return pokemonCard;
 }
 
-function showPokemonDetails(data) {
+async function getEvolutionChain(evolutionChainUrl) {
+    try {
+        const response = await fetch(evolutionChainUrl);
+        if (!response.ok) {
+            throw new Error('Erro ao carregar cadeia de evolução');
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Erro ao buscar a cadeia de evolução:', error);
+        return null;
+    }
+}
+
+async function getPokemonSpecies(pokemonId) {
+    try {
+        const response = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${pokemonId}/`);
+        if (!response.ok) {
+            throw new Error('Erro ao carregar dados da espécie');
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Erro ao buscar a espécie do Pokemon:', error);
+        return null;
+    }
+}
+
+async function showPokemonDetails(data) {
     const modal = document.getElementById('pokemon-modal');
     const modalBody = document.getElementById('modal-body');
+
+    showLoading(true);
 
     const typesHTML = data.types.map(typeInfo => {
         const typeName = typeInfo.type.name;
         return `<span class="type-${typeName}">${capitalizeFirstLetter(typeName)}</span>`;
     }).join('');
-    
-    modalBody.innerHTML = `
-        <h2>${capitalizeFirstLetter(data.name)}</h2>
-        <img src="${data.sprites.front_default}" alt="${data.name}">
-        <p><strong>ID:</strong> ${data.id}</p>
-        <p><strong>Altura:</strong> ${data.height} dm</p>
-        <p><strong>Peso:</strong> ${data.weight} hg</p>
-        <div class="type-container">
-            ${typesHTML}
+
+    const speciesData = await getPokemonSpecies(data.id);
+    if (!speciesData) {
+        return;
+    }
+
+    const evolutionChainUrl = speciesData.evolution_chain.url;
+    const evolutionData = await getEvolutionChain(evolutionChainUrl);
+    if (!evolutionData) {
+        return;
+    }
+
+    let preEvolutionsHTML = '<div class="evolutions-container"></div>';
+    let evolutionsHTML = '<div class="evolutions-container"></div>';
+    let evolutionsHTMLArray = '';
+    let currentEvolution = evolutionData.chain;
+
+    const createPreEvolutionHTML = (evolution) => `
+        <div class="evolutions-container">
+            <div class="evolutions">
+                <div class="evolution-item">
+                    <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${evolution.species.url.split('/')[6]}.png" class="evolution-item-img" onclick="getPokemonByName('${evolution.species.name}')">
+                </div>                
+            </div>
+            <div class="evolution-arrow"></div>
         </div>
-        <p><strong>Habilidades:</strong> ${data.abilities.map(abilityInfo => capitalizeFirstLetter(abilityInfo.ability.name)).join(', ')}</p>
     `;
-    
+
+    const createEvolutionsHTMLArray = (evolution) => `        
+        <div class="evolution-item">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${evolution.species.url.split('/')[6]}.png" class="evolution-item-img" onclick="getPokemonByName('${evolution.species.name}')">
+        </div>
+    `
+
+    const createEvolutionHTML = () => `
+        <div class="evolutions-container">
+            <div class="evolution-arrow"></div>
+            <div class="evolutions"> 
+                ${evolutionsHTMLArray}
+            </div>
+        </div>
+    `;
+
+    while (currentEvolution) {
+        // Verifica se há mais de uma evolução possível e se o nome da espécie atual é diferente do Pokemon selecionado
+        if (currentEvolution.evolves_to.length > 1 && currentEvolution.species.name !== data.name) {
+            // Define o pokemon inicial da cadeia de evoluções, como pré-evolução
+            preEvolutionsHTML = createPreEvolutionHTML(currentEvolution);
+            break;
+        } else {
+            if (currentEvolution.species.name === data.name) {
+                break;
+            }
+            preEvolutionsHTML = createPreEvolutionHTML(currentEvolution);
+            currentEvolution = currentEvolution.evolves_to[0];
+        }
+    }
+
+    currentEvolution = evolutionData.chain;
+    while (currentEvolution && currentEvolution.species.name !== data.name) {
+        currentEvolution = currentEvolution.evolves_to[0];
+    }
+    if (currentEvolution && currentEvolution.evolves_to.length > 0) {        
+        currentEvolution.evolves_to.forEach(evo => {            
+            evolutionsHTMLArray += createEvolutionsHTMLArray(evo);
+        });
+        evolutionsHTML = createEvolutionHTML();
+    }
+
+    modalBody.innerHTML = `
+        <div class="pokemon-details">
+            ${preEvolutionsHTML}
+            <div class="pokemon-info">
+                <h2>${capitalizeFirstLetter(data.name)}</h2>
+                <img src="${data.sprites.front_default}" alt="${data.name}">
+                <p><strong>ID:</strong> ${data.id}</p>
+                <p><strong>Altura:</strong> ${data.height} dm</p>
+                <p><strong>Peso:</strong> ${data.weight} hg</p>
+                <div class="type-container">
+                    ${typesHTML}
+                </div>
+                <p><strong>Habilidades:</strong> ${data.abilities.map(abilityInfo => capitalizeFirstLetter(abilityInfo.ability.name)).join(', ')}</p>
+            </div>
+            ${evolutionsHTML}
+        </div>
+    `;
+
     modal.style.display = 'flex';
     modalBody.style.display = 'block';
+    showLoading(false);
 }
+
+async function getPokemonByName(pokemonName) {
+    try {
+        showLoading(true);
+
+        const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonName}`);
+        if (!response.ok) {
+            throw new Error('Erro ao carregar Pokemon');
+        }
+
+        const data = await response.json();
+        showPokemonDetails(data);
+
+        setTimeout(() => {
+            showLoading(false);
+        }, 1000);
+    } catch (error) {
+        console.error('Erro ao buscar o Pokemon:', error);
+        showLoading(false);
+    }
+}
+
 
 function closeModal() {
     const modal = document.getElementById('pokemon-modal');

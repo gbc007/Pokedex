@@ -106,8 +106,7 @@ input, button {
     background-color: #0056b3;
 }
 
-/* Modal Styles */
-.modal {
+.modalBackground  {
     display: none;
     position: fixed;
     z-index: 1;
@@ -122,12 +121,12 @@ input, button {
 
 }
 
-.modal-content {
+.modal {
     background-color: white;
     padding: 20px;
     border-radius: 10px;
     width: 80%;
-    max-width: 500px;
+    max-width: 700px;
     text-align: left;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.25);
     text-align: center;
@@ -168,6 +167,54 @@ input, button {
     color: #333;
 }
 
+.pokemon-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid #ddd;
+}
+
+.evolutions-container {
+    display: flex;
+    align-items: center;
+    width: 220px;
+}
+
+.evolutions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    width: 220px;
+    justify-content: center;
+}
+
+.evolution-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.evolution-item-img {
+    width: 80px;
+    height: 80px;
+    cursor: pointer;
+}
+
+.evolution-arrow {
+    width: 0;
+    height: 0;
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+    border-left: 10px solid #000;
+    margin: 0 10px;
+}
+
+.pokemon-info {
+    flex: 1;
+    margin: 0 20px;
+}
+
 .type-container {
     display: flex;
     justify-content: center;
@@ -189,29 +236,29 @@ input, button {
 }
 
 #overlay {
-    position: fixed; /* Altera a posição do overlay para fixa */
+    position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.5); /* Cor de fundo acinzentada */
-    z-index: 1000; /* Z-index alto para cobrir outros elementos */
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
     display: none;
 }
 
 .loader {
     border: 4px solid rgba(0, 0, 0, 0.1);
-    border-top: 4px solid #333; /* Cor do círculo */
+    border-top: 4px solid #333;
     border-radius: 50%;
     width: 30px;
     height: 30px;
-    animation: spin 1s linear infinite; /* Animação de rotação */
+    animation: spin 1s linear infinite;
     margin: auto;
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%); /* Centraliza vertical e horizontalmente */
-    z-index: 1001; /* Z-index maior que o overlay */
+    transform: translate(-50%, -50%);
+    z-index: 1001;
 }
 
 @keyframes spin {
@@ -219,6 +266,13 @@ input, button {
     100% { transform: rotate(360deg); }
 }
 
+
+
+#search-result {
+    text-align: center;
+    font-size: 18px;
+    color: #333;
+}
 
 /* Colors for Pokemon types */
 .type-normal { background-color: #A8A77A; }

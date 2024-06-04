@@ -18,17 +18,18 @@
                 <button onclick="searchPokemon()">Pesquisar</button>
             </div>
         </div>
+        <div id="search-result"></div>
         <div id="pokemon-list" class="pokemon-list"></div>
         <button id="load-more" onclick="loadMorePokemons()">Ver mais</button>
     </div>
+    
     <!-- Popup Modal -->
-    <div id="pokemon-modal" class="modal">
-        <div class="modal-content">
+    <div id="pokemon-modal" class="modalBackground">
+        <div class="modal">
             <span class="close" onclick="closeModal()">&times;</span>
-            <div id="modal-body"></div>
+            <div id="modal-body" class="modal-body"></div>
         </div>
     </div>
-
     <script src="pokedex.js"></script>
 </body>
 </html>
